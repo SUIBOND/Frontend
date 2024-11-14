@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Transaction } from "@mysten/sui/transactions";
-import { useCurrentAccount, useSignTransaction } from "@mysten/dapp-kit";
+import { useCurrentAccount, useSignAndExecuteTransaction, useSignTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -43,10 +43,30 @@ export default function DeveloperForm() {
   const MODULE = "suibond";
   const gasBudgetInMist = 100000000;
 
-  const { mutate: signAndExecuteTransactionBlock } = useSignTransaction();
-  const txb = new Transaction();
+  const client = useSuiClient();
+
+
+	const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction({
+		execute: async ({ bytes, signature }: {bytes: any, signature: any}) =>
+			await client.executeTransactionBlock({
+				transactionBlock: bytes,
+				signature,
+				options: {
+					// Raw effects are required so the effects can be reported back to the wallet
+					showRawEffects: true,
+					// Select additional data to return
+					showObjectChanges: true,
+				},
+			}),
+	});
+ 
+	const currentAccount = useCurrentAccount();
+
+  // const { mutate: signAndExecuteTransactionBlock } = useSignTransaction();
 
   const txCont = async () => {
+    const txb = new Transaction();
+
     try {
       txb.moveCall({
         target: `${SUIBOND_PACKAGE_ID}::${MODULE}::mint_developer_cap`,
@@ -57,7 +77,7 @@ export default function DeveloperForm() {
       });
       txb.setGasBudget(gasBudgetInMist);
 
-      const response = await signAndExecuteTransactionBlock(
+      const response = await signAndExecuteTransaction(
         {
           transaction: txb,
         },
