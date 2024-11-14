@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useConnectWallet, useWallets } from "@mysten/dapp-kit";
+import { ConnectButton } from '@mysten/dapp-kit';
+
 
 export default function Navbar() {
   const [walletAddress, setWalletAddress] = useState("");
@@ -66,12 +68,14 @@ export default function Navbar() {
             </div>
           </>
         ) : (
-          <button
-            onClick={handleConnectWallet}
-            className="px-4 py-2 bg-blue-400 rounded-lg hover:text-blue-100"
-          >
-            Connect Wallet
-          </button>
+          // <button
+          //   onClick={handleConnectWallet}
+          //   className="px-4 py-2 bg-blue-400 rounded-lg hover:text-blue-100"
+          // >
+          //   Connect Wallet
+          // </button>
+          <ConnectButton />
+          
         )}
       </nav>
     </header>
