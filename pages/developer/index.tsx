@@ -59,7 +59,7 @@ export default function DeveloperForm() {
       setLoading(true); // Show loading
       try {
         const res = await fetch(
-          `https://backend-c2ut.onrender.com/identification/${walletAddress}`
+          `https://backend-c2ut.onrender.com/developer/identification/${walletAddress}`
         );
         if (res.status === 200) {
           router.push("/all-bounties");

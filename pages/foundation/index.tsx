@@ -106,7 +106,7 @@ export default function FoundationForm() {
               try {
                 setLoading(true);
                 const res = await fetch(
-                  `https://backend-c2ut.onrender.com/identification/${walletAddress}`
+                  `https://backend-c2ut.onrender.com/foundation/identification/${walletAddress}`
                 );
 
                 if (res.status === 200) {
