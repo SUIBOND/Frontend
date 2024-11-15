@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, CheckCircle2, Circle } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -57,21 +58,40 @@ const formSchema = z.object({
   fundingRangeMaximum: z
     .string()
     .max(99999999, { message: "Funding range is required." }),
-  fundingAmount: z.string().max(99999999, { message: "Funding amount is required." }),
-  bidBondPercentage: z.string().max(100,{message:"Bid Bond Percentage Required"})
+  fundingAmount: z
+    .string()
+    .max(99999999, { message: "Funding amount is required." }),
+  bidBondPercentage: z
+    .string()
+    .max(100, { message: "Bid Bond Percentage Required" }),
 });
 
 export default function Create() {
   const [currentStep, setCurrentStep] = useState("grant-info");
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const router = useRouter();
 
   const client = useSuiClient();
   const currentAccount = useCurrentAccount();
   const walletAddress = currentAccount?.address;
-  const foundationIds = localStorage.getItem("foundation_ids");
-  console.log("Foundation IDs:", foundationIds);
-  const foundationCapId = localStorage.getItem("foundationCapId");
+
+  const [foundationId, setFoundationId] = useState<string>("");
+  const [foundationCapId, setFoundationCapId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const localFoundationIds = localStorage.getItem("foundation_ids");
+      const parsedFoundationIds = localFoundationIds
+        ? JSON.parse(localFoundationIds)
+        : [];
+      const firstFoundationId = parsedFoundationIds[0];
+      setFoundationId(firstFoundationId);
+
+      const localFoundationCapId = localStorage.getItem("foundationCapId");
+      setFoundationCapId(localFoundationCapId);
+    }
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -143,7 +163,7 @@ export default function Create() {
   const txCont = async () => {
     const txb = new Transaction();
     const fundingAmount = form.getValues("fundingAmount");
-    const [coin] = txb.splitCoins(txb.gas, [100000]);    
+    const [coin] = txb.splitCoins(txb.gas, [100000]);
 
     console.log("Coin:", coin);
     try {
@@ -152,7 +172,7 @@ export default function Create() {
         arguments: [
           txb.object(foundationCapId!),
           txb.object(PLATFORM_OBJ_ID),
-          txb.pure.id(foundationIds![0]),
+          txb.pure.id(foundationId),
           txb.pure.string(form.getValues("title")),
           txb.pure.string(form.getValues("description")),
           txb.pure.u64(1),
@@ -164,13 +184,14 @@ export default function Create() {
       });
       txb.setGasBudget(100000000);
 
-      const response = await signAndExecuteTransaction( 
+      const response = await signAndExecuteTransaction(
         { transaction: txb },
         {
           onSuccess: async (result) => {
             console.log("Transaction onSuccess result:", result);
             if (result) {
               console.log("Transaction result received:", result);
+              router.push("/foundation/dashboard");
             } else {
               console.warn("Result is undefined or null");
             }
@@ -459,23 +480,23 @@ export default function Create() {
                   </div>
 
                   <FormField
-                      control={form.control}
-                      name="fundingAmount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className=" text-lightGray">
-                            Funding Amount
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Enter the funding amount"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    control={form.control}
+                    name="fundingAmount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className=" text-lightGray">
+                          Funding Amount
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter the funding amount"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </section>
 
                 <section
@@ -523,7 +544,11 @@ export default function Create() {
                     Before submitting your proposal, please carefully review all
                     the information to ensure it is accurate and complete.
                   </p>
-                  <Button onClick={txCont} className="my-2 bg-sui" type="submit">
+                  <Button
+                    onClick={txCont}
+                    className="my-2 bg-sui"
+                    type="submit"
+                  >
                     Publish Bounty
                   </Button>
                 </section>

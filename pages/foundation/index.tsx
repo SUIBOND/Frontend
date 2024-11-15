@@ -57,29 +57,29 @@ export default function FoundationForm() {
       }),
   });
 
-  // useEffect(() => {
-  //   const checkIdentification = async () => {
-  //     setLoading(true); // Show loading
-  //     try {
-  //       const res = await fetch(
-  //         `https://backend-c2ut.onrender.com/identification/${walletAddress}`
-  //       );
-  //       if (res.status === 200) {
-  //         router.push("/foundation/dashboard");
-  //       } else {
-  //         console.error("Identification failed", res.status);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error during fetch:", error);
-  //     } finally {
-  //       setLoading(false); // Hide loading
-  //     }
-  //   };
+  useEffect(() => {
+    const checkIdentification = async () => {
+      setLoading(true); // Show loading
+      try {
+        const res = await fetch(
+          `https://backend-c2ut.onrender.com/identification/${walletAddress}`
+        );
+        if (res.status === 200) {
+          router.push("/foundation/dashboard");
+        } else {
+          console.error("Identification failed", res.status);
+        }
+      } catch (error) {
+        console.error("Error during fetch:", error);
+      } finally {
+        setLoading(false); // Hide loading
+      }
+    };
 
-  //   if (walletAddress) {
-  //     checkIdentification();
-  //   }
-  // }, [walletAddress, router]);
+    if (walletAddress) {
+      checkIdentification();
+    }
+  }, [walletAddress, router]);
 
   const txCont = async () => {
     setLoading(true); // Show loading

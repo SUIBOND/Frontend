@@ -10,64 +10,19 @@ import { ChevronDown, ChevronUp, Edit } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-// Dummy data
-// const bounties = [
-//   {
-//     id: 1,
-//     title: "Bounty 1",
-//     proposals: {
-//       submitted: [
-//         {
-//           id: 1,
-//           title: "Proposal 1",
-//           description: "Description of the submitted proposal",
-//         },
-//         {
-//           id: 2,
-//           title: "Proposal 1",
-//           description: "Another submitted proposal description",
-//         },
-//       ],
-//       inProgress: [
-//         {
-//           id: 3,
-//           title: "Proposal 1",
-//           description: "Description of the in-progress proposal",
-//         },
-//       ],
-//       inReview: [
-//         {
-//           id: 4,
-//           title: "Proposal 1",
-//           description: "Description of the proposal under review",
-//         },
-//       ],
-//     },
-//   },
-//   {
-//     id: 2,
-//     title: "Bounty 2",
-//     proposals: {
-//       submitted: [],
-//       inProgress: [],
-//       inReview: [],
-//     },
-//   },
-//   {
-//     id: 3,
-//     title: "Bounty 3",
-//     proposals: {
-//       submitted: [],
-//       inProgress: [],
-//       inReview: [],
-//     },
-//   },
-// ];
-
 export default function Dashboard() {
+  const [openBounties, setOpenBounties] = useState<number[]>([]);
   const [foundationData, setFoundationData] = useState<any>(null); // State to store foundation data
   const [loading, setLoading] = useState(true); // State to manage loading
   const [error, setError] = useState(null); // State to handle errors
+
+  const toggleBounty = (bountyId: number) => {
+    setOpenBounties((prev) =>
+      prev.includes(bountyId)
+        ? prev.filter((id) => id !== bountyId)
+        : [...prev, bountyId]
+    );
+  };
 
   useEffect(() => {
     const fetchFoundationData = async () => {
@@ -133,14 +88,7 @@ export default function Dashboard() {
     );
   }
 
-  // const [openBounties, setOpenBounties] = useState<number[]>([1]);
-  // const toggleBounty = (bountyId: number) => {
-  //   setOpenBounties((prev) =>
-  //     prev.includes(bountyId)
-  //       ? prev.filter((id) => id !== bountyId)
-  //       : [...prev, bountyId]
-  //   );
-  // };
+  // Make sure to define the openBounties hook at the top level to avoid the "rendered more hooks" error
 
   return (
     <div className="container max-w-6xl p-6 mx-auto">
@@ -159,19 +107,18 @@ export default function Dashboard() {
         {foundationData?.bounties?.length === 0 ? (
           <p className="text-center text-lg text-gray-500">
             No bounty proposals present.
-          </p> // Message when bounties is empty
+          </p>
         ) : (
           foundationData?.bounties?.map((bounty: any, index: any) => (
             <div key={index}>
-              {/* Render your bounty item here */}
-              <p>{bounty.name}</p> {/* Example: Display bounty name */}
+              <p>{bounty.name}</p>
             </div>
           ))
         )}
       </div>
 
-      {/* <div className="mb-8 space-y-4">
-        {bounties.map((bounty) => (
+      <div className="mb-8 space-y-4">
+        {foundationData?.bounties?.map((bounty: any) => (
           <Collapsible
             key={bounty.id}
             open={openBounties.includes(bounty.id)}
@@ -190,68 +137,91 @@ export default function Dashboard() {
             </CollapsibleTrigger>
             <CollapsibleContent className="p-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {/* Unconfirmed Badge always shown */}
                 <div className="space-y-4">
                   <Badge variant="secondary" className="mb-2">
-                    Submitted
+                    Unconfirmed
                   </Badge>
-                  {bounty.proposals.submitted.map((proposal) => (
-                    <Card key={proposal.id} className="bg-card border-water">
-                      <CardHeader>
-                        <CardTitle className="text-lg">
-                          {proposal.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground">
-                          {proposal.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {bounty.unconfirmed_proposals.length > 0 ? (
+                    bounty.unconfirmed_proposals.map((proposal: any) => (
+                      <Card key={proposal.id} className="bg-card border-water">
+                        <CardHeader>
+                          <CardTitle className="text-lg">
+                            {proposal.title}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-muted-foreground">
+                            {proposal.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No unconfirmed proposals.
+                    </p> // Message when no unconfirmed proposals
+                  )}
                 </div>
+
+                {/* In Progress Badge always shown */}
                 <div className="space-y-4">
                   <Badge className="mb-2 text-green-800 bg-green-100">
-                    In progress
+                    In Progress
                   </Badge>
-                  {bounty.proposals.inProgress.map((proposal) => (
-                    <Card key={proposal.id} className="bg-card border-water">
-                      <CardHeader>
-                        <CardTitle className="text-lg">
-                          {proposal.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground">
-                          {proposal.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {bounty.processing_proposals.length > 0 ? (
+                    bounty.processing_proposals.map((proposal: any) => (
+                      <Card key={proposal.id} className="bg-card border-water">
+                        <CardHeader>
+                          <CardTitle className="text-lg">
+                            {proposal.title}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-muted-foreground">
+                            {proposal.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No proposals in progress.
+                    </p> // Message when no proposals in progress
+                  )}
                 </div>
+
+                {/* Completed Badge always shown */}
                 <div className="space-y-4">
                   <Badge className="mb-2 text-yellow-800 bg-yellow-100">
-                    In Review
+                    Completed
                   </Badge>
-                  {bounty.proposals.inReview.map((proposal) => (
-                    <Card key={proposal.id} className="bg-card border-water">
-                      <CardHeader>
-                        <CardTitle className="text-lg">
-                          {proposal.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground">
-                          {proposal.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {bounty.completed_proposals.length > 0 ? (
+                    bounty.completed_proposals.map((proposal: any) => (
+                      <Card key={proposal.id} className="bg-card border-water">
+                        <CardHeader>
+                          <CardTitle className="text-lg">
+                            {proposal.title}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-muted-foreground">
+                            {proposal.description}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No completed proposals.
+                    </p> // Message when no completed proposals
+                  )}
                 </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
         ))}
-      </div> */}
+      </div>
 
       <Card className="mt-8 border-water">
         <CardHeader className="flex flex-row items-center justify-between">
