@@ -62,6 +62,18 @@ export default function DeveloperForm() {
           `https://backend-c2ut.onrender.com/d-identification/${walletAddress}`
         );
         if (res.status === 200) {
+          const data = await res.json(); // Parse the JSON response
+          console.log("data",data)
+          const developerCapId = data?.developerCap?.id;
+          console.log("developerCapId",developerCapId)
+          
+          if (developerCapId) {
+            localStorage.setItem("developerCapId", developerCapId);
+            console.log(
+              "developerCapId stored in local storage:",
+              developerCapId
+            );
+          }
           router.push("/all-bounties");
         } else {
           console.error("Identification failed", res.status);

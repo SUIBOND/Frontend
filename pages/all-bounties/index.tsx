@@ -58,6 +58,7 @@ export default function Component() {
   const filteredBounties = useMemo(() => {
     return bounties
       .filter((bounty) => {
+        console.log("bounty id",bounty.id);
         const matchesSearch = bounty.title
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
