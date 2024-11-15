@@ -64,10 +64,26 @@ export default function FoundationForm() {
         const res = await fetch(
           `https://backend-c2ut.onrender.com/f-identification/${walletAddress}`
         );
-        if (res.status === 200) {
-          router.push("/foundation/dashboard");
-        } else {
-          console.error("Identification failed", res.status);
+          if (res.status === 200) {
+            const data = await res.json(); // Parse the JSON response
+            const foundationIds = data?.foundationCap?.foundation_ids;
+            const foundationCapId = data.foundationCap.id;
+
+            if (foundationIds && Array.isArray(foundationIds)) {
+            // Store the foundation_ids in local storage
+            localStorage.setItem(
+              "foundation_ids",
+              JSON.stringify(foundationIds)
+            );
+            localStorage.setItem("foundationCapId", foundationCapId);
+            console.log(
+              "Foundation IDs stored in local storage:",
+              foundationIds
+            );
+            router.push("/foundation/dashboard");
+          } else {
+            console.error("Identification failed", res.status);
+          }
         }
       } catch (error) {
         console.error("Error during fetch:", error);
