@@ -7,73 +7,140 @@ import {
 } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, Edit } from "lucide-react";
-import { useState } from "react";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 // Dummy data
-const bounties = [
-  {
-    id: 1,
-    title: "Bounty 1",
-    proposals: {
-      submitted: [
-        {
-          id: 1,
-          title: "Proposal 1",
-          description: "Description of the submitted proposal",
-        },
-        {
-          id: 2,
-          title: "Proposal 1",
-          description: "Another submitted proposal description",
-        },
-      ],
-      inProgress: [
-        {
-          id: 3,
-          title: "Proposal 1",
-          description: "Description of the in-progress proposal",
-        },
-      ],
-      inReview: [
-        {
-          id: 4,
-          title: "Proposal 1",
-          description: "Description of the proposal under review",
-        },
-      ],
-    },
-  },
-  {
-    id: 2,
-    title: "Bounty 2",
-    proposals: {
-      submitted: [],
-      inProgress: [],
-      inReview: [],
-    },
-  },
-  {
-    id: 3,
-    title: "Bounty 3",
-    proposals: {
-      submitted: [],
-      inProgress: [],
-      inReview: [],
-    },
-  },
-];
+// const bounties = [
+//   {
+//     id: 1,
+//     title: "Bounty 1",
+//     proposals: {
+//       submitted: [
+//         {
+//           id: 1,
+//           title: "Proposal 1",
+//           description: "Description of the submitted proposal",
+//         },
+//         {
+//           id: 2,
+//           title: "Proposal 1",
+//           description: "Another submitted proposal description",
+//         },
+//       ],
+//       inProgress: [
+//         {
+//           id: 3,
+//           title: "Proposal 1",
+//           description: "Description of the in-progress proposal",
+//         },
+//       ],
+//       inReview: [
+//         {
+//           id: 4,
+//           title: "Proposal 1",
+//           description: "Description of the proposal under review",
+//         },
+//       ],
+//     },
+//   },
+//   {
+//     id: 2,
+//     title: "Bounty 2",
+//     proposals: {
+//       submitted: [],
+//       inProgress: [],
+//       inReview: [],
+//     },
+//   },
+//   {
+//     id: 3,
+//     title: "Bounty 3",
+//     proposals: {
+//       submitted: [],
+//       inProgress: [],
+//       inReview: [],
+//     },
+//   },
+// ];
 
-export default function Component() {
-  const [openBounties, setOpenBounties] = useState<number[]>([1]);
+export default function Dashboard() {
+  const [foundationData, setFoundationData] = useState<any>(null); // State to store foundation data
+  const [loading, setLoading] = useState(true); // State to manage loading
+  const [error, setError] = useState(null); // State to handle errors
 
-  const toggleBounty = (bountyId: number) => {
-    setOpenBounties((prev) =>
-      prev.includes(bountyId)
-        ? prev.filter((id) => id !== bountyId)
-        : [...prev, bountyId]
+  useEffect(() => {
+    const fetchFoundationData = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Retrieve foundation_ids from local storage
+        const foundationIds = localStorage.getItem("foundation_ids");
+
+        if (!foundationIds) {
+          throw new Error("No foundation IDs found in local storage");
+        }
+
+        const ids = JSON.parse(foundationIds); // Parse the stored string into an array
+        console.log("Foundation IDs:", ids);
+
+        // Call the backend API with foundation IDs
+        const res = await fetch(
+          `https://backend-c2ut.onrender.com/foundation/${ids[0]}`
+        );
+
+        if (!res.ok) {
+          throw new Error(`API call failed with status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        console.log("Data from API:", data);
+
+        setFoundationData(data); // Store the API response in state
+      } catch (err: any) {
+        console.error("Error fetching foundation data:", err);
+        setError(err.message); // Update error state
+      } finally {
+        setLoading(false); // End loading state
+      }
+    };
+
+    fetchFoundationData();
+  }, []);
+
+  // Add another useEffect to log foundationData after it updates
+  useEffect(() => {
+    if (foundationData) {
+      console.log("Updated Foundation Data:", foundationData);
+    }
+  }, [foundationData]); // This runs whenever foundationData changes
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-5 h-5 border-4 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+        <span className="ml-2 text-blue-500">Loading foundation data...</span>
+      </div>
     );
-  };
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen text-red-500">
+        <p>Error: {error}</p>
+      </div>
+    );
+  }
+
+  // const [openBounties, setOpenBounties] = useState<number[]>([1]);
+  // const toggleBounty = (bountyId: number) => {
+  //   setOpenBounties((prev) =>
+  //     prev.includes(bountyId)
+  //       ? prev.filter((id) => id !== bountyId)
+  //       : [...prev, bountyId]
+  //   );
+  // };
 
   return (
     <div className="container max-w-6xl p-6 mx-auto">
@@ -81,7 +148,7 @@ export default function Component() {
         <h1 className="text-2xl font-semibold">
           Overview of proposal submitted to your bounties
         </h1>
-        <Link href="/create" passHref>
+        <Link href="/foundation/create" passHref>
           <Button className="bg-blue-500 hover:bg-blue-600">
             Create new bounty
           </Button>
@@ -89,6 +156,21 @@ export default function Component() {
       </div>
 
       <div className="mb-8 space-y-4">
+        {foundationData?.bounties?.length === 0 ? (
+          <p className="text-center text-lg text-gray-500">
+            No bounty proposals present.
+          </p> // Message when bounties is empty
+        ) : (
+          foundationData?.bounties?.map((bounty: any, index: any) => (
+            <div key={index}>
+              {/* Render your bounty item here */}
+              <p>{bounty.name}</p> {/* Example: Display bounty name */}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* <div className="mb-8 space-y-4">
         {bounties.map((bounty) => (
           <Collapsible
             key={bounty.id}
@@ -169,12 +251,16 @@ export default function Component() {
             </CollapsibleContent>
           </Collapsible>
         ))}
-      </div>
+      </div> */}
 
       <Card className="mt-8 border-water">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className=" text-2xl">My Organisation</CardTitle>
-          <Button className="border-sui text-sui cursor-not-allowed" variant="outline" size="sm">
+          <Button
+            className="border-sui text-sui cursor-not-allowed"
+            variant="outline"
+            size="sm"
+          >
             <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>
@@ -184,11 +270,11 @@ export default function Component() {
             <label className="text-sm font-medium">
               Title of the organisation
             </label>
-            <p className="text-muted-foreground">Acme Corp</p>
+            <p className="text-muted-foreground">{foundationData?.name}</p>
           </div>
           <div>
             <label className="text-sm font-medium">Website URL</label>
-            <p className="text-muted-foreground">https://acme.com</p>
+            <p className="text-muted-foreground">{foundationData?.url}</p>
           </div>
         </CardContent>
       </Card>

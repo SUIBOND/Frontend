@@ -24,6 +24,15 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
+// Contract imports
+import { Transaction } from "@mysten/sui/transactions";
+import {
+  useCurrentAccount,
+  useSignAndExecuteTransaction,
+  useSuiClient,
+} from "@mysten/dapp-kit";
+import { PLATFORM_OBJ_ID, SUIBOND_PACKAGE_ID } from "@/config/constants";
+
 const steps = [
   { id: "grant-info", name: "Grant Information" },
   { id: "bid-bond", name: "Define Bid Bond" },
@@ -47,14 +56,22 @@ const formSchema = z.object({
     .min(1, { message: "Funding range is required." }),
   fundingRangeMaximum: z
     .string()
-    .max(5, { message: "Funding range is required." }),
-  bidBondPercentage: z.string().max(10,{message:"Bid Bond Percentage Required"})
+    .max(99999999, { message: "Funding range is required." }),
+  fundingAmount: z.string().max(99999999, { message: "Funding amount is required." }),
+  bidBondPercentage: z.string().max(100,{message:"Bid Bond Percentage Required"})
 });
 
-export default function Dashboard() {
+export default function Create() {
   const [currentStep, setCurrentStep] = useState("grant-info");
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  const client = useSuiClient();
+  const currentAccount = useCurrentAccount();
+  const walletAddress = currentAccount?.address;
+  const foundationIds = localStorage.getItem("foundation_ids");
+  console.log("Foundation IDs:", foundationIds);
+  const foundationCapId = localStorage.getItem("foundationCapId");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,6 +83,7 @@ export default function Dashboard() {
       grantType: undefined,
       fundingRangeMimimum: undefined,
       fundingRangeMaximum: undefined,
+      fundingAmount: "",
       bidBondPercentage: "",
     },
   });
@@ -109,6 +127,65 @@ export default function Dashboard() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
   }
+
+  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction({
+    execute: async ({ bytes, signature }: { bytes: any; signature: any }) =>
+      await client.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+        options: {
+          showRawEffects: true,
+          showObjectChanges: true,
+        },
+      }),
+  });
+
+  const txCont = async () => {
+    const txb = new Transaction();
+    const fundingAmount = form.getValues("fundingAmount");
+    const [coin] = txb.splitCoins(txb.gas, [100000]);    
+
+    console.log("Coin:", coin);
+    try {
+      txb.moveCall({
+        target: `${SUIBOND_PACKAGE_ID}::suibond::create_and_add_bounty_to_foundation`,
+        arguments: [
+          txb.object(foundationCapId!),
+          txb.object(PLATFORM_OBJ_ID),
+          txb.pure.id(foundationIds![0]),
+          txb.pure.string(form.getValues("title")),
+          txb.pure.string(form.getValues("description")),
+          txb.pure.u64(1),
+          txb.pure.u64(form.getValues("bidBondPercentage")),
+          txb.pure.u64(form.getValues("fundingRangeMimimum")),
+          txb.pure.u64(form.getValues("fundingRangeMaximum")),
+          coin,
+        ],
+      });
+      txb.setGasBudget(100000000);
+
+      const response = await signAndExecuteTransaction( 
+        { transaction: txb },
+        {
+          onSuccess: async (result) => {
+            console.log("Transaction onSuccess result:", result);
+            if (result) {
+              console.log("Transaction result received:", result);
+            } else {
+              console.warn("Result is undefined or null");
+            }
+          },
+
+          onError: (error) => {
+            console.error("Transaction onError:", error);
+          },
+        }
+      );
+      return response;
+    } catch (e) {
+      console.error("'enter' transaction failed", e);
+    }
+  };
 
   return (
     <>
@@ -201,7 +278,7 @@ export default function Dashboard() {
                     )}
                   />
 
-                  <FormLabel className="text-lightGray">
+                  {/* <FormLabel className="text-lightGray">
                     Period of Application
                   </FormLabel>
                   <div className="flex gap-4 my-2">
@@ -294,7 +371,7 @@ export default function Dashboard() {
                         </FormItem>
                       )}
                     />
-                  </div>
+                  </div> */}
 
                   <FormField
                     control={form.control}
@@ -326,14 +403,14 @@ export default function Dashboard() {
                                 Bounty
                               </FormLabel>
                             </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
+                            {/* <FormItem className="flex items-center space-x-3 space-y-0">
                               <FormControl>
                                 <RadioGroupItem value="other" />
                               </FormControl>
                               <FormLabel className="font-normal">
                                 Other type
                               </FormLabel>
-                            </FormItem>
+                            </FormItem> */}
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
@@ -341,14 +418,14 @@ export default function Dashboard() {
                     )}
                   />
 
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 my-8">
                     <FormField
                       control={form.control}
                       name="fundingRangeMimimum"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className=" text-lightGray">
-                            Funding Range
+                            Funding Range (Mist)
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -380,6 +457,25 @@ export default function Dashboard() {
                       )}
                     />
                   </div>
+
+                  <FormField
+                      control={form.control}
+                      name="fundingAmount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className=" text-lightGray">
+                            Funding Amount
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter the funding amount"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                 </section>
 
                 <section
@@ -427,7 +523,7 @@ export default function Dashboard() {
                     Before submitting your proposal, please carefully review all
                     the information to ensure it is accurate and complete.
                   </p>
-                  <Button className="my-2 bg-sui" type="submit">
+                  <Button onClick={txCont} className="my-2 bg-sui" type="submit">
                     Publish Bounty
                   </Button>
                 </section>
