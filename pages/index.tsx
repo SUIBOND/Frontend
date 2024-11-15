@@ -10,7 +10,7 @@ export default function Landing() {
           <h1 className="mb-4 text-4xl font-medium md:text-5xl">
             Welcome to suibond
           </h1>
-          <p className="text-muted-foreground">xxx</p>
+          <p className="text-muted-foreground text-center">Welcome to suibond, your platform for managing and participating in Web3 funding opportunities – whether you’re an organisation aiming to fund impactful projects or a builder looking for financial support.</p>
         </div>
 
         <div className="grid max-w-4xl gap-6 mx-auto md:grid-cols-2">
@@ -30,7 +30,7 @@ export default function Landing() {
                 I want to fund projects
               </h2>
               <p className="text-muted-foreground">
-                I'm an organisation that has funding to allocate and I want to
+                I am an organisation that has funding to allocate and I want to
                 issue a request for proposals.
               </p>
               <Link href="/foundation" className="absolute inset-0">
@@ -55,7 +55,7 @@ export default function Landing() {
                 I want to get funded
               </h2>
               <p className="text-muted-foreground">
-                I'm a project owner looking for funding and I want to submit a
+                I am a project owner looking for funding and I want to submit a
                 proposal.
               </p>
               <Link href="/developer" className="absolute inset-0">

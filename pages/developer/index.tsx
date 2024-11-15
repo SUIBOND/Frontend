@@ -1,8 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Transaction } from "@mysten/sui/transactions";
-import { useCurrentAccount, useSignAndExecuteTransaction, useSignTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -13,6 +11,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Transaction } from "@mysten/sui/transactions";
+import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
+import { SUIBOND_PACKAGE_ID } from "@/config/constants";
 
 const formSchema = z.object({
   nickname: z.string().min(2, {
@@ -36,10 +37,6 @@ export default function DeveloperForm() {
     console.log("onSubmit", values);
   }
 
-  const SUIBOND_PACKAGE_ID =
-    "0xd41317eeb1dbb1be8d818f8505fa674cb99debe112f0e221e2e9194227bd2cbf";
-  // const PLATFORM_OBJ_ID =
-  //   "0xcd7a780e7848ae205218cf58dc089b395efe3650a150905525eec620ca661a45";
   const MODULE = "suibond";
   const gasBudgetInMist = 100000000;
 
@@ -47,7 +44,7 @@ export default function DeveloperForm() {
 
 
 	const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction({
-		execute: async ({ bytes, signature }: {bytes: any, signature: any}) =>
+		execute: async ({ bytes, signature }) =>
 			await client.executeTransactionBlock({
 				transactionBlock: bytes,
 				signature,
@@ -60,10 +57,6 @@ export default function DeveloperForm() {
 			}),
 	});
  
-	const currentAccount = useCurrentAccount();
-
-  // const { mutate: signAndExecuteTransactionBlock } = useSignTransaction();
-
   const txCont = async () => {
     const txb = new Transaction();
 
@@ -71,8 +64,8 @@ export default function DeveloperForm() {
       txb.moveCall({
         target: `${SUIBOND_PACKAGE_ID}::${MODULE}::mint_developer_cap`,
         arguments: [
-          txb.pure.string("Testing"),
-          txb.pure.string("https:google.com"),
+          txb.pure.string( form.getValues("nickname") ),
+          txb.pure.string( form.getValues("link") ),
         ],
       });
       txb.setGasBudget(gasBudgetInMist);
@@ -95,8 +88,6 @@ export default function DeveloperForm() {
           },
         }
       );
-
-      console.log("'enter' transaction result:", response);
       return response;
     } catch (e) {
       console.error("'enter' transaction failed", e);

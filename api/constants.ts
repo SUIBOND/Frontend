@@ -1,2 +1,0 @@
-export const SUIBOND_PACKAGE_ID = "0x0cc4ef678969aba85efd470c5f234ff8801bca8075d9bfe02417d362fc18d393";
-export const PLATFORM_OBJ_ID = "0xb50ead4a4ffd1af6e5ea55b0ae5cce18bfd313aefc84c90a14d00f89cc8e168f";

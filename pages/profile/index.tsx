@@ -8,6 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, Edit } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 // Dummy data
 const bounties = [
@@ -80,9 +81,11 @@ export default function Component() {
         <h1 className="text-2xl font-semibold">
           Overview of proposal submitted to your bounties
         </h1>
-        <Button className="bg-blue-500 hover:bg-blue-600">
-          Create new bounty
-        </Button>
+        <Link href="/create" passHref>
+          <Button className="bg-blue-500 hover:bg-blue-600">
+            Create new bounty
+          </Button>
+        </Link>
       </div>
 
       <div className="mb-8 space-y-4">
@@ -90,7 +93,7 @@ export default function Component() {
           <Collapsible
             key={bounty.id}
             open={openBounties.includes(bounty.id)}
-            className="border rounded-lg"
+            className="border rounded-lg border-water"
           >
             <CollapsibleTrigger
               className="flex items-center justify-between w-full p-4 hover:bg-muted/50"
@@ -98,9 +101,9 @@ export default function Component() {
             >
               <h2 className="text-xl font-semibold">{bounty.title}</h2>
               {openBounties.includes(bounty.id) ? (
-                <ChevronUp className="w-5 h-5" />
+                <ChevronUp className="w-6 h-6 text-water" />
               ) : (
-                <ChevronDown className="w-5 h-5" />
+                <ChevronDown className="w-6 h-6 text-water" />
               )}
             </CollapsibleTrigger>
             <CollapsibleContent className="p-4">
@@ -110,7 +113,7 @@ export default function Component() {
                     Submitted
                   </Badge>
                   {bounty.proposals.submitted.map((proposal) => (
-                    <Card key={proposal.id} className="bg-card">
+                    <Card key={proposal.id} className="bg-card border-water">
                       <CardHeader>
                         <CardTitle className="text-lg">
                           {proposal.title}
@@ -129,7 +132,7 @@ export default function Component() {
                     In progress
                   </Badge>
                   {bounty.proposals.inProgress.map((proposal) => (
-                    <Card key={proposal.id} className="bg-card">
+                    <Card key={proposal.id} className="bg-card border-water">
                       <CardHeader>
                         <CardTitle className="text-lg">
                           {proposal.title}
@@ -148,7 +151,7 @@ export default function Component() {
                     In Review
                   </Badge>
                   {bounty.proposals.inReview.map((proposal) => (
-                    <Card key={proposal.id} className="bg-card">
+                    <Card key={proposal.id} className="bg-card border-water">
                       <CardHeader>
                         <CardTitle className="text-lg">
                           {proposal.title}
@@ -168,10 +171,10 @@ export default function Component() {
         ))}
       </div>
 
-      <Card className="mt-8">
+      <Card className="mt-8 border-water">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>My Organisation</CardTitle>
-          <Button variant="outline" size="sm">
+          <CardTitle className=" text-2xl">My Organisation</CardTitle>
+          <Button className="border-sui text-sui cursor-not-allowed" variant="outline" size="sm">
             <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>

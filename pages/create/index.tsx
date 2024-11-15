@@ -21,11 +21,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const steps = [
   { id: "grant-info", name: "Grant Information" },
-  { id: "proposal-info", name: "Proposal Information" },
   { id: "bid-bond", name: "Define Bid Bond" },
   { id: "proof-publish", name: "Proof & Publish" },
 ];
@@ -42,12 +42,13 @@ const formSchema = z.object({
   grantType: z.enum(["technical", "bounty", "other"], {
     required_error: "Grant type is required.",
   }),
-  fundingRange: z.string().min(1, { message: "Funding range is required." }),
-  proposalInfo: z.enum(["projectTitle", "description", "website"], {
-    required_error: "Proposal Information is required.",
-  }),
-  stakeAmount: z.string().min(1, { message: "Bond Amount is required." }),
-  numberOfBids: z.string().min(1, { message: "Number of Bids is required." }),
+  fundingRangeMimimum: z
+    .string()
+    .min(1, { message: "Funding range is required." }),
+  fundingRangeMaximum: z
+    .string()
+    .max(5, { message: "Funding range is required." }),
+  bidBondPercentage: z.string().max(10,{message:"Bid Bond Percentage Required"})
 });
 
 export default function Dashboard() {
@@ -63,10 +64,9 @@ export default function Dashboard() {
       startDate: undefined,
       endDate: undefined,
       grantType: undefined,
-      fundingRange: "",
-      proposalInfo: undefined,
-      stakeAmount: "",
-      numberOfBids: "",
+      fundingRangeMimimum: undefined,
+      fundingRangeMaximum: undefined,
+      bidBondPercentage: "",
     },
   });
 
@@ -114,8 +114,8 @@ export default function Dashboard() {
     <>
       <div className="min-h-screen bg-gray-50">
         <main className="container py-8 mx-auto text-black">
-          <div className="grid grid-cols-4 gap-8">
-            <div className="sticky self-start space-y-8 top-8">
+          <div className="flex gap-12 max-w-5xl">
+            <div className="sticky self-start space-y-8 top-8 w-1/4">
               {steps.map((step, stepIdx) => (
                 <div key={step.id} className="relative flex items-start">
                   {stepIdx !== steps.length - 1 && (
@@ -157,10 +157,13 @@ export default function Dashboard() {
                   }}
                 >
                   <h2 className="mb-2 text-2xl font-semibold text-lightGray">
-                    Grant Information
+                    Bounty Information
                   </h2>
                   <p className="mb-6 text-[#A5B0BF]">
-                    Lorem ipsum dolor sit amet consectetur.
+                    Welcome to the bounty creation process. Let’s get started
+                    with the details of your bounty. Enter a brief overview to
+                    help potential applicants understand the purpose and
+                    requirements of this funding opportunity.
                   </p>
                   <FormField
                     control={form.control}
@@ -169,7 +172,10 @@ export default function Dashboard() {
                       <FormItem>
                         <FormLabel className="text-lightGray">Title</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter Title" {...field} />
+                          <Input
+                            placeholder="Provide a short, descriptive title for your grant."
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -186,7 +192,7 @@ export default function Dashboard() {
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter Detailed Description"
+                            placeholder="Describe the purpose of this grant, the types of projects you’re looking to support, and any other relevant information."
                             {...field}
                           />
                         </FormControl>
@@ -335,98 +341,45 @@ export default function Dashboard() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="fundingRange"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className=" text-lightGray">
-                          Funding Range
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter the funding range"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="flex gap-4">
+                    <FormField
+                      control={form.control}
+                      name="fundingRangeMimimum"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className=" text-lightGray">
+                            Funding Range
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter the minimum amount"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="fundingRange"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className=" text-lightGray">
-                          Funding Range
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter the funding range"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </section>
-
-                <section
-                  ref={(el) => {
-                    sectionRefs.current["proposal-info"] = el as HTMLDivElement;
-                  }}
-                >
-                  <h2 className="mb-2 text-2xl font-semibold text-lightGray">
-                    Proposal Information
-                  </h2>
-                  <p className="mb-6 text-[#A5B0BF]">
-                    Lorem ipsum dolor sit amet consectetur.
-                  </p>
-
-                  <FormField
-                    control={form.control}
-                    name="proposalInfo"
-                    render={({ field }) => (
-                      <FormItem className="my-8 space-y-3">
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col space-y-1"
-                          >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="projectTitle" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Project Title
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="description" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Description
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="website" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Website
-                              </FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="fundingRangeMaximum"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className=" text-lightGray">
+                            &nbsp;
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter the maximum amount"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </section>
 
                 <section
@@ -438,36 +391,21 @@ export default function Dashboard() {
                     Define Bid Bond
                   </h2>
                   <p className="mb-6 text-[#A5B0BF]">
-                    Lorem ipsum dolor sit amet consectetur.
+                    Establish the conditions for bid bonds, ensuring applicant
+                    commitment to the project.
                   </p>
 
                   <FormField
                     control={form.control}
-                    name="stakeAmount"
+                    name="bidBondPercentage"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lightGray">
-                          How much should the applicants stake for their
-                          proposal to be evaluated?
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder="Choose amount" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="numberOfBids"
-                    render={({ field }) => (
-                      <FormItem className="my-8">
-                        <FormLabel className="text-lightGray">
-                          Define how many bids can be submitted for this RFP
+                        <FormLabel className=" text-lightGray">
+                          &nbsp;
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Choose a name for the proposal NFT"
+                            placeholder="Enter the bidding percentage"
                             {...field}
                           />
                         </FormControl>
@@ -477,9 +415,22 @@ export default function Dashboard() {
                   />
                 </section>
 
-                <Button className="my-2" type="submit">
-                  Submit
-                </Button>
+                <section
+                  ref={(el) => {
+                    sectionRefs.current["proof-publish"] = el as HTMLDivElement;
+                  }}
+                >
+                  <h2 className="mb-2 text-2xl font-semibold text-lightGray">
+                    Proof and Publish
+                  </h2>
+                  <p className="mb-6 text-[#A5B0BF]">
+                    Before submitting your proposal, please carefully review all
+                    the information to ensure it is accurate and complete.
+                  </p>
+                  <Button className="my-2 bg-sui" type="submit">
+                    Publish Bounty
+                  </Button>
+                </section>
               </form>
             </Form>
           </div>
