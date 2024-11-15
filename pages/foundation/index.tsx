@@ -62,7 +62,7 @@ export default function FoundationForm() {
       setLoading(true); // Show loading
       try {
         const res = await fetch(
-          `https://backend-c2ut.onrender.com/identification/${walletAddress}`
+          `https://backend-c2ut.onrender.com/f-identification/${walletAddress}`
         );
         if (res.status === 200) {
           router.push("/foundation/dashboard");
@@ -106,7 +106,7 @@ export default function FoundationForm() {
               try {
                 setLoading(true);
                 const res = await fetch(
-                  `https://backend-c2ut.onrender.com/foundation/identification/${walletAddress}`
+                  `https://backend-c2ut.onrender.com/f-identification/${walletAddress}`
                 );
 
                 if (res.status === 200) {
