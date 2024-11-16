@@ -146,7 +146,7 @@ export default function Dashboard() {
                     bounty.unconfirmed_proposals.map((proposal: any) => (
                       <Card key={proposal.id} className="bg-card border-water">
                         <CardHeader>
-                          <CardTitle className="text-lg">
+                          <CardTitle className="text-lg break-all">
                             {proposal.title}
                           </CardTitle>
                         </CardHeader>
